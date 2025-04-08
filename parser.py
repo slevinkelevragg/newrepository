@@ -1,6 +1,25 @@
 import requests
 from bs4 import BeautifulSoup
 
+import subprocess
+
+def git_commit(message):
+    try:
+        # Добавляем все изменения в индекс
+        subprocess.run(["git", "add", "."], check=True)
+        
+        # Создаем коммит
+        subprocess.run(["git", "commit", "-m", message], check=True)
+        
+        print("Коммит успешно создан!")
+    except subprocess.CalledProcessError as e:
+        print(f"Ошибка при выполнении Git-команды: {e}")
+
+# Пример использования
+if __name__ == "__main__":
+    commit_message = input("Введите сообщение для коммита: ")
+    git_commit(commit_message)
+    
 def parse_page (url):
     try:
         response = requests.get(url)
