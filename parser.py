@@ -1,7 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
-
 import subprocess
+import validators
+
 
 def git_commit(message):
     try:
@@ -15,31 +16,51 @@ def git_commit(message):
     except subprocess.CalledProcessError as e:
         print(f"Ошибка при выполнении Git-команды: {e}")
 
-# Пример использования
-if __name__ == "__main__":
-    commit_message = input("Введите сообщение для коммита: ")
-    git_commit(commit_message)
-    
-def parse_page (url):
+
+def check_git_remote():
     try:
+        result = subprocess.run(["git", "remote", "-v"], capture_output=True, text=True, check=True)
+        print("Удаленные репозитории:")
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"Ошибка при выполнении Git-команды: {e}")
+
+
+def parse_page(url):
+    title = "Заголовок не найден"  # Инициализация переменной
+    try:
+        # Проверка корректности URL
+        if not validators.url(url):
+            print("Некорректный URL. Пожалуйста, введите правильный URL.")
+            return
+        
+        # Отправляем GET-запрос
         response = requests.get(url)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
         
-        
-        #Парсинг заголовок страницы
+        # Парсинг заголовка страницы
         title = soup.title.string if soup.title else "Заголовок не найден"
         print(f"Заголовок страницы: {title}")
         
     except requests.exceptions.RequestException as e:
         print(f"Ошибка запроса: {e}")
      
-    with open("output.txt", "w", encoding="utf-8") as f:
-        f.write(f"Заголовок: {title}")   
-print("Данные сохранены в output.txt")
+    # Сохраняем результат в файл
+    with open("output.txt", "a", encoding="utf-8") as f:
+        f.write(f"Заголовок: {title}\n")   
+    print("Данные сохранены в output.txt")
 
-if __name__== "__main__":
-  url = input("Введите URL для парсинга:")
-  parse_page(url)
-  
+
+if __name__ == "__main__":
+    # Проверка удаленных репозиториев
+    check_git_remote()
+
+    # Создание коммита
+    commit_message = input("Введите сообщение для коммита: ")
+    git_commit(commit_message)
+
+    # Парсинг страницы
+    url = input("Введите URL для парсинга: ")
+    parse_page(url)
   
